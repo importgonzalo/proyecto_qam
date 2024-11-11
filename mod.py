@@ -1,4 +1,3 @@
-# modular_graficar.py
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -6,10 +5,22 @@ import pandas as pd
 # Función para leer los datos desde el archivo CSV
 def leer_datos_csv():
     df = pd.read_csv("datos_entrada.csv")
-    return df["Datos"].values
+    # Convertir los bits en índices de la constelación
+    data_bits = df.values  # Obtener los bits de los símbolos
+    num_symbols = len(data_bits)
+    
+    # Convertir los 4 bits a un valor entero de 0 a 15
+    data = []
+    for i in range(num_symbols):
+        # Convertir cada fila de bits a un número entero
+        bit_array = data_bits[i]
+        symbol = int("".join(str(bit) for bit in bit_array), 2)  # Convertir bits a entero
+        data.append(symbol)
+    return np.array(data)
 
 # Función para modular los datos utilizando 16-QAM
 def modular_datos(data, mod_order):
+    # Crear los puntos de la constelación 16-QAM
     constellation_points = np.array([complex(i, j) for i in range(-3, 4, 2) for j in range(-3, 4, 2)])
     symbols = constellation_points[data]
     return symbols
@@ -31,7 +42,7 @@ def guardar_datos_modulados(received_signal):
 def graficar_constelacion(symbols, received_signal):
     plt.figure(figsize=(10, 6))
     plt.scatter(symbols.real, symbols.imag, color='red', label='Transmitido')
-    plt.scatter(received_signal.real, received_signal.imag, color='blue', alpha=0.5, label='Recibido con Ruido')
+    plt.scatter(received_signal.real, received_signal.imag, color='blue', alpha=0.5, label='Transmitido con Ruido')
     plt.title('Constelación 16-QAM')
     plt.xlabel('In-Phase')
     plt.ylabel('Quadrature')
@@ -42,8 +53,8 @@ def graficar_constelacion(symbols, received_signal):
 # Función principal
 def main():
     data = leer_datos_csv()
-    mod_order = 16
-    snr_db = 20
+    mod_order = 16  # 16-QAM
+    snr_db = 20     # Relación señal a ruido en dB
 
     symbols = modular_datos(data, mod_order)
     received_signal = agregar_ruido(symbols, snr_db)
